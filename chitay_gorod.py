@@ -23,29 +23,25 @@ def get_content(html):
     tasks = []
 
     for item in items:
-        tasks.append(
-            {
-                'url_book': HOST + item.find('a', class_='product-card__title').get('href')
-            }
-        )
+        tasks.append(HOST + item.find('a', class_='product-card__title').get('href'))
     return tasks
 
 def get_page(html):
     soup = BeautifulSoup(html, 'html.parser')
-    items = soup.find_all('div', class_='pagination')
+    items = soup.find_all('div', class_='pagination__wrapper')
     pages = []
+   
 
     for item in items:
         pages.append(
             {
-                'page': item.find('span', class_='pagination__text')
+                'page': item.find('span', class_='pagination__text').get_text(strip=True)
             }
-        
         )
 
-    #print(items)
-    print(pages)
-    page_all = 4
+    # print(items)
+    # print(pages)
+    page_all = 3
     return page_all
 
 
@@ -53,23 +49,21 @@ def parser():
     html = get_html(URL, params={})
     if html.status_code == 200:
         #Количество страниц для парсинга.
-        page_all = 3 #количество страниц для теста
-
         URL_page = URL + '1' + params
         html = get_html(URL_page, params={})
         page_all = get_page(html.text)
 
         #Получение ссылок на книги
-        # tasks = []
-        # for page in range(1, page_all+1):
-        #     print(f'Парсим страницу: {page}')
+        tasks = []
+        for page in range(1, page_all+1):
+            print(f'Парсим страницу: {page}')
 
-        #     URL_page = URL + str(page) + params
+            URL_page = URL + str(page) + params
 
-        #     html = get_html(URL_page, params={})
-        #     tasks.extend(get_content(html.text))
+            html = get_html(URL_page, params={})
+            tasks.extend(get_content(html.text))
 
-        #     print(tasks)
+            print(tasks)
     else:
         print("Error")
 
