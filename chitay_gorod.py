@@ -31,32 +31,20 @@ def get_content(html):
     return tasks
 
 def get_page(html):
-    # soup = BeautifulSoup(html, 'html.parser')
-    # items = soup.find_all('div', class_='pagination')
-    # pages = []
-
-    # for item in items:
-    #     pages.append(
-    #         {
-    #             'page': item.find('span', class_='pagination__text').get_text(strip=True)
-    #         }
-        
-    #     )
-
     soup = BeautifulSoup(html, 'html.parser')
-    items = soup.find_all('div', class_='product-card__text product-card__row')
-    tasks = []
+    items = soup.find_all('div', class_='pagination')
+    pages = []
 
     for item in items:
-        tasks.append(
+        pages.append(
             {
-                'url_book': HOST + item.find('a', class_='product-card__title').get('href')
+                'page': item.find('span', class_='pagination__text')
             }
+        
         )
 
-
-    print(items)
-    print(tasks)
+    #print(items)
+    print(pages)
     page_all = 4
     return page_all
 
