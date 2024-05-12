@@ -22,5 +22,4 @@ def book_save(books):
         df = pd.DataFrame(books)
         df.to_excel('./Книги.xlsx', sheet_name='Книги', index=False)
   
-
 #book_save(a)
