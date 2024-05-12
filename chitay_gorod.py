@@ -1,18 +1,46 @@
 import requests # подключение библиотеки для работы с http, необхадима предварительная установка
 from bs4 import BeautifulSoup # подключение парсера для синтаксического разбора файлов html\xml, необходима предварительная установка
-import csv
 
 HOST = 'https://www.chitai-gorod.ru' # основная страница сайта который парсим
-URL = 'https://www.chitai-gorod.ru/catalog/books/hudozhestvennaya-literatura-110001?page=' # конкретная страница откуда парсим
-params = '&filters%5BonlyAvailableInCustomerCity%5D=1&filters%5BliteratureWorkPublishingYearsMin%5D=2020&filters%5BliteratureWorkPublishingYearsMax%5D=2023'
-CSV = 'Книги.csv'   #Путь файла для сохранения.
 HEADERS = {'accept': '*/*',
            'user-agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Mobile Safari/537.36'}
-#чтобы сайт не воспринимал программу ботом, нужно прописывать заголовки, информация из кода страницы
-# Network - all - первая строка - заголовки user agent и accept
 
-# ?filters%5BonlyAvailableInCustomerCity%5D=1&filters%5BliteratureWorkPublishingYearsMin%5D=2020&filters%5BliteratureWorkPublishingYearsMax%5D=2023
 
+def parser(URL, params):
+    html = get_html(URL, params={})
+    if html.status_code == 200:
+        #Количество страниц для парсинга.
+        # URL_page = URL + '1' + params
+        # html = get_html(URL_page, params={})
+        page_all = get_page(html.text)
+        print(page_all)
+
+        #Получение ссылок на книги
+        url_book = []
+        for page in range(1, page_all+1):
+            #print(f'Парсим страницу: {page}')
+            print(page, ' из ', page_all)
+            URL_page = URL + str(page) + params
+
+            html = get_html(URL_page, params={})
+            url_book.extend(get_url_book(html.text))
+
+            #print(url_book)
+
+        #Получение информации о книгах
+        books = []
+        for book in url_book:
+            #print(book)
+            html = get_html(book, params={})
+            books.extend(get_book(html.text))
+
+            #print(books)
+    else:
+        print("Error")
+
+    return books
+
+#Загрузка страницы
 def get_html(url, params):
     r = requests.get(url, headers=HEADERS, params=params)
     return r
@@ -29,16 +57,16 @@ def get_url_book(html):
 
 #Получение количества страниц
 def get_page(html):
-    soup = BeautifulSoup(html, 'html.parser')
-    items = soup.find_all('div', class_='pagination__button')
-    pages = []
-    for item in items:
-        pages.append(
-            {
-                item.find('span', class_='pagination__text')
-            }
-        )
-    page_all = int(str(pages[-2])[41:44])
+    # soup = BeautifulSoup(html, 'html.parser')
+    # items = soup.find_all('div', class_='pagination__button')
+    # pages = []
+    # for item in items:
+    #     pages.append(
+    #         {
+    #             item.find('span', class_='pagination__text')
+    #         }
+    #     )
+    # page_all = int(str(pages[-2])[41:44])
     page_all = 1
     return page_all
 
@@ -78,55 +106,22 @@ def get_book(html):
                 'numberOfPages': item.find('span', itemprop='numberOfPages').get_text(strip=True),
                 'size': item.find('span', itemprop='size').get_text(strip=True),
                 'bookFormat': item.find('span', itemprop='bookFormat').get_text(strip=True),
-                #'circulation': item.find('span', class_='product-detail-features__item-value').get_text(strip=True),
-                #'weight': item.find('span', class_='product-detail-features__item-value').get_text(strip=True),
-                'typicalAgeRange': item.find('span', itemprop='typicalAgeRange').get_text(strip=True),
+                'circulation': 'не готово', #item.find('span', class_='product-detail-features__item-value').get_text(strip=True),
+                'weight': 'не готово', #item.find('span', class_='product-detail-features__item-value').get_text(strip=True),
+                'typicalAgeRange': 'не готово', # item.find('span', itemprop='typicalAgeRange').get_text(strip=True),
                 'ratingValue': item.find('meta', itemprop='ratingValue')['content'],
                 'reviewCount': item.find('meta', itemprop='reviewCount')['content'],
                 'status': status,
-                #'offer' : offer,
+                'offer': 'не готово', #offer,
                 'description': item.find('article', class_='detail-description__text').get_text(strip=True)
             }
         )
-        print(books)
+        #print(books)
     
     return books
 
 
 
-def parser():
-    html = get_html(URL, params={})
-    if html.status_code == 200:
-        #Количество страниц для парсинга.
-        URL_page = URL + '1' + params
-        html = get_html(URL_page, params={})
-        page_all = get_page(html.text)
-
-        #Получение ссылок на книги
-        url_book = []
-        for page in range(1, page_all+1):
-            #print(f'Парсим страницу: {page}')
-
-            URL_page = URL + str(page) + params
-
-            html = get_html(URL_page, params={})
-            url_book.extend(get_url_book(html.text))
-
-            #print(url_book)
-
-        #Получение информации о книгах
-        books = []
-        for book in url_book:
-            #print(book)
-            html = get_html(book, params={})
-            books.extend(get_book(html.text))
-
-            #print(books)
-
-    else:
-        print("Error")
-
-parser()
 
 
 
